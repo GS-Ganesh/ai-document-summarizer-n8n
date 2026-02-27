@@ -169,9 +169,9 @@ Installation
 
 Clone the repository:
 
-git clone https://github.com/YOUR-USERNAME/ai-document-summarizer-n8n.git
+git clone https://github.com/GS-Ganesh/ai-document-summarizer-n8n.git
 
-Import workflow2_document_summarizer.json into n8n
+Import Document Summarizer & Knowledge Base Builder.json into n8n
 
 Create Google Drive folder:
 
