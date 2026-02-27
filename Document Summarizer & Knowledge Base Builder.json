@@ -1,0 +1,166 @@
+{
+  "name": "Document Summarizer & Knowledge Base Builder (Template)",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            { "mode": "everyMinute" }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_DRIVE_FOLDER_ID",
+          "mode": "list"
+        },
+        "event": "fileCreated"
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [-304, 32],
+      "name": "Google Drive - New File"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [-80, 32],
+      "name": "Download File",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mistralAi",
+      "typeVersion": 1,
+      "position": [128, -96],
+      "name": "Extract Text",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are a knowledge management AI. Return ONLY raw JSON in the required structure."
+            },
+            {
+              "content": "=File Name: {{ $('Google Drive - New File').first().json.name }}\n\nDocument Content:\n{{ $json.extractedText }}"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [368, -160],
+      "name": "OpenAI Summarize Document",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const outputData = $input.first().json;\n\nconst aiRaw = outputData?.output?.[0]?.content?.[0]?.text\n  || outputData?.message?.content\n  || outputData?.choices?.[0]?.message?.content\n  || '';\n\nconst triggerData = $('Google Drive - New File').first().json;\n\nconst fileData = {\n  file_name: triggerData.name || 'Unknown File',\n  file_type: triggerData.mimeType || 'unknown',\n  file_id: triggerData.id || '',\n  processed_at: new Date().toISOString()\n};\n\nlet summary;\ntry {\n  const cleaned = aiRaw.replace(/```json/g, '').replace(/```/g, '').trim();\n  summary = JSON.parse(cleaned);\n} catch(e) {\n  summary = {\n    title: fileData.file_name,\n    document_type: 'unknown',\n    one_line_summary: 'Could not parse AI summary.',\n    key_takeaways: 'Manual review required',\n    action_items: 'Read document manually',\n    relevant_to: 'all',\n    urgency: 'read_this_week'\n  };\n}\n\nconst urgencyEmoji = {\n  read_now: '🔥',\n  read_this_week: '⚡',\n  archive: '🗄️'\n};\n\nreturn [{\n  json: {\n    ...fileData,\n    ...summary,\n    urgency_label: `${urgencyEmoji[summary.urgency] || ''} ${summary.urgency}`,\n    saved_at: new Date().toISOString()\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, -160],
+      "name": "Parse Summary Response"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Knowledge Base",
+          "mode": "list"
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [944, -160],
+      "name": "Google Sheets - Knowledge Base"
+    },
+    {
+      "parameters": {
+        "jsCode": "const error = $input.first().json;\n\nconst errorMessage = error.message\n  || error.error\n  || error.description\n  || 'Unknown error occurred';\n\nreturn [{\n  json: {\n    error_message: errorMessage,\n    file_name: 'Unknown File',\n    timestamp: new Date().toISOString()\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [720, 80],
+      "name": "Error Handler"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Errors",
+          "mode": "list"
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [944, 80],
+      "name": "Google Sheets - Errors"
+    }
+  ],
+  "connections": {
+    "Google Drive - New File": {
+      "main": [[{ "node": "Download File", "type": "main", "index": 0 }]]
+    },
+    "Download File": {
+      "main": [
+        [{ "node": "Extract Text", "type": "main", "index": 0 }],
+        [{ "node": "Error Handler", "type": "main", "index": 0 }]
+      ]
+    },
+    "Extract Text": {
+      "main": [
+        [{ "node": "OpenAI Summarize Document", "type": "main", "index": 0 }],
+        [{ "node": "Error Handler", "type": "main", "index": 0 }]
+      ]
+    },
+    "OpenAI Summarize Document": {
+      "main": [
+        [{ "node": "Parse Summary Response", "type": "main", "index": 0 }],
+        [{ "node": "Error Handler", "type": "main", "index": 0 }]
+      ]
+    },
+    "Parse Summary Response": {
+      "main": [[{ "node": "Google Sheets - Knowledge Base", "type": "main", "index": 0 }]]
+    },
+    "Error Handler": {
+      "main": [[{ "node": "Google Sheets - Errors", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "tags": []
+}
