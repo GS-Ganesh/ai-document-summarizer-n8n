@@ -1,0 +1,24 @@
+[
+  {
+    "pages": [
+      {
+        "index": 0,
+        "markdown": "Supplier: Arabian Oud & Co\n\nLocation: Dubai, UAE\n\nProduct Catalog 2026:\n\n1. Rose Oud Concentrate\n\n- Price: $45 per 100ml\n\n- MOQ: 50 units\n\n- Best for: Hotel lobbies, luxury spas\n\n2. Amber Musk Blend\n\n- Price: $38 per 100ml\n\n- MOQ: 100 units\n\n- Best for: Resort rooms, airlines\n\n3. Sandalwood Elite\n\n- Price: $52 per 100ml\n\n- MOQ: 30 units\n\n- Best for: Premium gift shops\n\nPayment Terms: 30% advance, 70% on delivery\n\nLead Time: 3-4 weeks\n\nMinimum Order Value: $2000\n\nContact: sales@arabianoud.com",
+        "images": [],
+        "tables": [],
+        "hyperlinks": [],
+        "header": null,
+        "footer": null,
+        "dimensions": null
+      }
+    ],
+    "model": "mistral-ocr-latest",
+    "document_annotation": null,
+    "usage_info": {
+      "pages_processed": 1,
+      "doc_size_bytes": 6955
+    },
+    "extractedText": "Supplier: Arabian Oud & Co\n\nLocation: Dubai, UAE\n\nProduct Catalog 2026:\n\n1. Rose Oud Concentrate\n\n- Price: $45 per 100ml\n\n- MOQ: 50 units\n\n- Best for: Hotel lobbies, luxury spas\n\n2. Amber Musk Blend\n\n- Price: $38 per 100ml\n\n- MOQ: 100 units\n\n- Best for: Resort rooms, airlines\n\n3. Sandalwood Elite\n\n- Price: $52 per 100ml\n\n- MOQ: 30 units\n\n- Best for: Premium gift shops\n\nPayment Terms: 30% advance, 70% on delivery\n\nLead Time: 3-4 weeks\n\nMinimum Order Value: $2000\n\nContact: sales@arabianoud.com",
+    "pageCount": 1
+  }
+]
